@@ -32,7 +32,7 @@ do.cleanuponabort=1
 device.name1=pipa
 
 # 支持的 Android 版本（留空表示全部）/ Supported Android versions (empty = all)
-supported.versions=
+supported.versions=16
 
 # 安全补丁级别（留空表示全部）/ Supported security patch levels
 supported.patchlevels=
