@@ -1,19 +1,34 @@
 ### AnyKernel3 Ramdisk Mod Script
 ## osm0sis @ xda-developers
 
+# =====================================================================
+# Kernel: Entropy Kernel for OPPO SM8250 (kona)
+# Devices: Find X3 / Reno5 Pro+ / Reno6 Pro+
+# Maintainer: bcggxx
+# Source: https://github.com/bcggxx/android_kernel_oppo_sm8250
+# License: GPL v2 (free and open source)
+# =====================================================================
+
 ### AnyKernel setup
 # global properties
 properties() { '
-kernel.string=ExampleKernel by osm0sis @ xda-developers
-do.devicecheck=1
+kernel.string=Entropy Kernel by bcggxx @ OPPO SM8250
+
+# Device check disabled: OPPO kona devices report many different
+# device names (fussi, PECM30, RMX3xxx, PDxx00 ...) across regions
+# and ROMs. Set to 1 and fill device.name1..5 to enforce a check.
+do.devicecheck=0
+
+# All drivers are built-in (no modules in kona-perf_defconfig)
 do.modules=0
-do.systemless=1
+
+do.systemless=0
 do.cleanup=1
-do.cleanuponabort=0
-device.name1=maguro
-device.name2=toro
-device.name3=toroplus
-device.name4=tuna
+do.cleanuponabort=1
+device.name1=
+device.name2=
+device.name3=
+device.name4=
 device.name5=
 supported.versions=
 supported.patchlevels=
@@ -29,93 +44,47 @@ set_perm_recursive 0 0 750 750 $RAMDISK/init* $RAMDISK/sbin;
 } # end attributes
 
 # boot shell variables
-BLOCK=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;
-IS_SLOT_DEVICE=0;
+# OPPO SM8250 devices are A/B slot devices with a boot partition and
+# a separate dtbo partition; block is auto-detected.
+BLOCK=auto;
+IS_SLOT_DEVICE=1;
 RAMDISK_COMPRESSION=auto;
 PATCH_VBMETA_FLAG=auto;
 
 # import functions/variables and setup patching - see for reference (DO NOT REMOVE)
 . tools/ak3-core.sh;
 
+ui_print " ";
+ui_print "**********************************************";
+ui_print " OPPO SM8250 (kona) 专用内核";
+ui_print " Entropy Kernel for OPPO SM8250";
+ui_print "**********************************************";
+ui_print " 适用机型 / Supported devices:";
+ui_print "   Find X3 / Reno5 Pro+ / Reno6 Pro+";
+ui_print "**********************************************";
+ui_print " 维护者 / Maintainer: bcggxx";
+ui_print "**********************************************";
+ui_print " 源码 / Source:";
+ui_print " https://github.com/bcggxx/android_kernel_oppo_sm8250";
+ui_print "**********************************************";
+ui_print " 本内核免费且开源，遵循 GPL v2 协议";
+ui_print " This kernel is FREE and OPEN SOURCE under GPL v2";
+ui_print "**********************************************";
+ui_print " ";
+
 # boot install
-dump_boot; # use split_boot to skip ramdisk unpack, e.g. for devices with init_boot ramdisk
+# Only the kernel image is replaced; the ramdisk is kept untouched.
+# split_boot skips ramdisk unpacking, so write_boot must NOT be used
+# (it would try to repack a ramdisk that was never extracted).
+# Correct flow: split_boot + flash_boot + flash_generic dtbo.
+split_boot;
 
-# init.rc
-backup_file init.rc;
-replace_string init.rc "cpuctl cpu,timer_slack" "mount cgroup none /dev/cpuctl cpu" "mount cgroup none /dev/cpuctl cpu,timer_slack";
+# Kernel files placed in the zip root are replaced automatically:
+#   - Image     -> kernel
+#   - dtbo.img  -> flashed to the dtbo partition below
+flash_boot;
 
-# init.tuna.rc
-backup_file init.tuna.rc;
-insert_line init.tuna.rc "nodiratime barrier=0" after "mount_all /fstab.tuna" "\tmount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/userdata /data remount nosuid nodev noatime nodiratime barrier=0";
-append_file init.tuna.rc "bootscript" init.tuna;
-
-# fstab.tuna
-backup_file fstab.tuna;
-patch_fstab fstab.tuna /system ext4 options "noatime,barrier=1" "noatime,nodiratime,barrier=0";
-patch_fstab fstab.tuna /cache ext4 options "barrier=1" "barrier=0,nomblk_io_submit";
-patch_fstab fstab.tuna /data ext4 options "data=ordered" "nomblk_io_submit,data=writeback";
-append_file fstab.tuna "usbdisk" fstab;
-
-write_boot; # use flash_boot to skip ramdisk repack, e.g. for devices with init_boot ramdisk
+# Flash dtbo.img from the zip root to the dtbo partition
+# (flash_boot does not handle dtbo).
+flash_generic dtbo;
 ## end boot install
-
-
-## init_boot files attributes
-#init_boot_attributes() {
-#set_perm_recursive 0 0 755 644 $RAMDISK/*;
-#set_perm_recursive 0 0 750 750 $RAMDISK/init* $RAMDISK/sbin;
-#} # end attributes
-
-# init_boot shell variables
-#BLOCK=init_boot;
-#IS_SLOT_DEVICE=1;
-#RAMDISK_COMPRESSION=auto;
-#PATCH_VBMETA_FLAG=auto;
-
-# reset for init_boot patching
-#reset_ak;
-
-# init_boot install
-#dump_boot; # unpack ramdisk since it is the new first stage init ramdisk where overlay.d must go
-
-#write_boot;
-## end init_boot install
-
-
-## vendor_kernel_boot shell variables
-#BLOCK=vendor_kernel_boot;
-#IS_SLOT_DEVICE=1;
-#RAMDISK_COMPRESSION=auto;
-#PATCH_VBMETA_FLAG=auto;
-
-# reset for vendor_kernel_boot patching
-#reset_ak;
-
-# vendor_kernel_boot install
-#split_boot; # skip unpack/repack ramdisk, e.g. for dtb on devices with hdr v4 and vendor_kernel_boot
-
-#flash_boot;
-## end vendor_kernel_boot install
-
-
-## vendor_boot files attributes
-#vendor_boot_attributes() {
-#set_perm_recursive 0 0 755 644 $RAMDISK/*;
-#set_perm_recursive 0 0 750 750 $RAMDISK/init* $RAMDISK/sbin;
-#} # end attributes
-
-# vendor_boot shell variables
-#BLOCK=vendor_boot;
-#IS_SLOT_DEVICE=1;
-#RAMDISK_COMPRESSION=auto;
-#PATCH_VBMETA_FLAG=auto;
-
-# reset for vendor_boot patching
-#reset_ak;
-
-# vendor_boot install
-#dump_boot; # use split_boot to skip ramdisk unpack, e.g. for dtb on devices with hdr v4 but no vendor_kernel_boot
-
-#write_boot; # use flash_boot to skip ramdisk repack, e.g. for dtb on devices with hdr v4 but no vendor_kernel_boot
-## end vendor_boot install
-
