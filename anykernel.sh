@@ -44,10 +44,10 @@ set_perm_recursive 0 0 750 750 $RAMDISK/init* $RAMDISK/sbin;
 } # end attributes
 
 # boot shell variables
-# OPPO SM8250 devices are A/B slot devices with a boot partition and
-# a separate dtbo partition; block is auto-detected.
+# OPPO SM8250 devices do not have A/B slots; the boot partition
+# block is auto-detected.
 BLOCK=auto;
-IS_SLOT_DEVICE=1;
+IS_SLOT_DEVICE=0;
 RAMDISK_COMPRESSION=auto;
 PATCH_VBMETA_FLAG=auto;
 
