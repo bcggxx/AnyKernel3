@@ -31,9 +31,6 @@ do.cleanuponabort=1
 # 设备名称 - 小米平板6 代号 pipa / Device name - Xiaomi Pad 6 codename pipa
 device.name1=pipa
 
-# 支持的 Android 版本（当前仅支持 Android 17）/ Supported Android versions (Android 17 only)
-supported.versions=17
-
 # 安全补丁级别（留空表示全部）/ Supported security patch levels
 supported.patchlevels=
 
@@ -88,8 +85,6 @@ ui_print " Source: https://github.com/bcggxx/android_kernel_xiaomi_n0_pipa";
 ui_print "**********************************************";
 ui_print " 本内核是免费且开源的，遵循 GPL v2 协议";
 ui_print " This kernel is FREE and OPEN SOURCE under GPL v2";
-ui_print "**********************************************";
-ui_print " 仅适用于 Android 17 / For Android 17 only";
 ui_print "**********************************************";
 ui_print " ";
 
